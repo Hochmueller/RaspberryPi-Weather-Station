@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang = "en">
+  <head>
+  </head>
+
+  <body>
+    <!-- HTML -->
+    <h1>Weather</h1> 
+	<!--    
+	<img src="static/pic.JPG" width="1280" height="720" alt="webcam"></img>
+    <button onclick="myFunction()">The time is?</button>
+	-->
+    <p>Enter Date: <input type = "text" id = "datepicker-1"></p>
+    <form>
+      Plot data for a<br>
+      <input type="radio" name="plotTime" id="day" checked="checked" onclick="updatePlot()">day
+      <input type="radio" name="plotTime" id="week" onclick="updatePlot()">week
+      <input type="radio" name="plotTime" id="month" onclick="updatePlot()">month
+      <input type="radio" name="plotTime" id="year" onclick="updatePlot()">year
+    </form>
+    <form>
+      Plot data from<br>
+      <input type="radio" name="datasource" id="local" checked="checked" onclick="updatePlot()">Local Sensor
+      <input type="radio" name="datasource" id="remote" onclick="updatePlot()">Remote Sensor
+    </form>
+    
+    <link rel="stylesheet" href="static/style.css" type="text/css"> 
+    {% for id in ids %}
+      <h3>{{id}}</h3>
+      <div id="{{id}}"></div>
+    {% endfor %}
+  </body>
+
+<footer>
+  <!-- D3.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
+  <!-- jQuery -->
+  <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+  <!-- Plotly.js -->
+  <script src="https://d14fo0winaifog.cloudfront.net/plotly-basic.js"></script>
+  <!-- flask js comunication-->
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>window.jQuery || document.write('<script src="{{url_for('static', filename='jquery.js') }}">\x3C/script>')</script>
+
+
+
+
+
+
+  <meta charset = "utf-8">
+  <title>jQuery UI Datepicker functionality</title>
+  <link href = "https://code.jquery.com/ui/1.10.4/themes/ui-lightness/jquery-ui.css"
+     rel = "stylesheet">
+  <script src = "https://code.jquery.com/jquery-1.10.2.js"></script>
+  <script src = "https://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+  
+   
+
+  <!-- Javascript -->
+  <script>
+
+    var graphs = {{graphJSON | safe}};
+    var ids = {{ids | safe}};
+    for(var i in graphs) {
+      Plotly.plot(ids[i], // the ID of the div, created above
+                  graphs[i].data,
+                  graphs[i].layout || {});
+    }
+
+
+    $( "#datepicker-1" ).datepicker(
+      { dateFormat: 'dd.mm.yy', 
+      onSelect: function(){
+        updatePlot();}
+      });
+
+    $("#datepicker-1").datepicker({ dateFormat: "dd.mm.yy"}).datepicker("setDate", "0");
+
+    function updatePlot() {
+      var duration;
+      if(document.getElementById("day").checked){
+        duration="day"
+      } else if(document.getElementById("month").checked){
+        duration="month"
+      } else if(document.getElementById("year").checked){
+        duration="year"
+      } else if(document.getElementById("week").checked){
+        duration="week"
+      }
+      var geo;
+      if(document.getElementById("local").checked){
+        geo="local"
+      } else if(document.getElementById("remote").checked){
+        geo="remote"
+      }
+      var array = duration+" "+geo+" "+$("#datepicker-1").datepicker({dateFormat: 'dd.mm.yy'}).val();
+      $.getJSON( '/getNewData', {
+        post: array
+        }, function(data) {
+            var time = data.time;
+            var Temperature = [{x: data.time, y: data.temperature, type: 'scatter'}]
+            var Presure = [{x: data.time, y: data.presure, type: 'scatter'}]
+            var hr = [{x: data.time, y: data.rh, type: 'scatter'}]
+            
+            Plotly.newPlot( ids[0], // the ID of the div, created above
+                            Temperature,
+                            {});
+            Plotly.newPlot( ids[1], // the ID of the div, created above
+                            Presure,
+                            {});
+            Plotly.newPlot( ids[2],
+                            hr,
+                            {});
+            }
+        );
+    }
+
+
+
+
+
+
+
+
+
+  </script>
+
+
+</footer>
+
+
+
+
+</html>

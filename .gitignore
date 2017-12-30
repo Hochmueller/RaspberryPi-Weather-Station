@@ -1,0 +1,10 @@
+__pycache__
+data/local/days/*
+data/local/months/*
+data/local/weeks/*
+data/local/yeas/*
+data/remote/days/*
+data/remote/months/*
+data/remote/weeks/*
+data/remote/yeas/*
+
