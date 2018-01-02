@@ -188,7 +188,8 @@ def check_selected():
     geo=post[1]
     date=post[2].split('.')
     date=datetime.datetime(int(date[2]), int(date[1]), int(date[0]))
-    
+    fc=float(post[3])
+ 
     if geo=='local': path=PATH+'data/local/'
     else: path=PATH+'data/remote/' 
 
@@ -201,6 +202,14 @@ def check_selected():
         with open(path,'r') as f:
             data=eval(json.load(f)) 
     else: data=[[],[],[],[]]
+    #filter data here!
+    if(fc>0 and duration!='year'):
+        if duration=="day":
+            None
+        elif duration=="week":
+            None
+        elif duration=="month":
+            None
 
     time=(json.dumps(data[0], cls=plotly.utils.PlotlyJSONEncoder)) 
     

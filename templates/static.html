@@ -23,6 +23,10 @@
       <input type="radio" name="datasource" id="local" checked="checked" onclick="updatePlot()">Local Sensor
       <input type="radio" name="datasource" id="remote" onclick="updatePlot()">Remote Sensor
     </form>
+	<p></p>
+	Enable Filter <input type="checkbox" name="EnFilter" id="EnFilter" checked="checked" onclick="updatePlot()">
+    Filter cutoff frequency[in <span id="unit"> minutes</span>] <input type="number" name="fc" id="fc" >
+
     
     <link rel="stylesheet" href="static/style.css" type="text/css"> 
     {% for id in ids %}
@@ -58,7 +62,7 @@
 
   <!-- Javascript -->
   <script>
-
+	
     var graphs = {{graphJSON | safe}};
     var ids = {{ids | safe}};
     for(var i in graphs) {
@@ -76,16 +80,27 @@
 
     $("#datepicker-1").datepicker({ dateFormat: "dd.mm.yy"}).datepicker("setDate", "0");
 
+	$('#fc').keypress(function(event) {
+        if (event.keyCode == 13) {
+			updatePlot()
+        }
+    });
+
+
     function updatePlot() {
       var duration;
       if(document.getElementById("day").checked){
         duration="day"
+		document.getElementById("unit").innerHTML = "minutes"
       } else if(document.getElementById("month").checked){
         duration="month"
+		document.getElementById("unit").innerHTML = "hours"
       } else if(document.getElementById("year").checked){
         duration="year"
+		document.getElementById("unit").innerHTML = "--"
       } else if(document.getElementById("week").checked){
         duration="week"
+		document.getElementById("unit").innerHTML = "minutes"
       }
       var geo;
       if(document.getElementById("local").checked){
@@ -93,7 +108,17 @@
       } else if(document.getElementById("remote").checked){
         geo="remote"
       }
-      var array = duration+" "+geo+" "+$("#datepicker-1").datepicker({dateFormat: 'dd.mm.yy'}).val();
+
+	  var filter
+	  if(document.getElementById("EnFilter").checked){
+		filter=document.getElementById("fc").value;
+	  }else{
+		filter="0";
+	  }
+	  if(filter=="" || filter==null){
+		filter="0"
+	  }
+      var array = duration+" "+geo+" "+$("#datepicker-1").datepicker({dateFormat: 'dd.mm.yy'}).val()+" "+filter;
       $.getJSON( '/getNewData', {
         post: array
         }, function(data) {

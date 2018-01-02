@@ -91,7 +91,7 @@ class storeWeather(object):
         self.weektempT = self.weektempT + temp
         self.weektempP = self.weektempP + pressure
         self.weektemprh = self.weektemprh + rh
-
+        #average over 10 minutes
         if self.weekcnt==10 or self.today.isocalendar()[1] != time.isocalendar()[1]:
 
             self.weektempT = round(self.weektempT/self.weekcnt,2)
@@ -129,7 +129,7 @@ class storeWeather(object):
         self.monthtempT = self.monthtempT + temp
         self.monthtempP = self.monthtempP + pressure
         self.monthtemprh = self.monthtemprh + rh
-
+        #average over an hour
         if self.monthcnt==60 or self.today.month != time.month:
 
             
@@ -161,7 +161,7 @@ class storeWeather(object):
 
 
     def collectYear(self,time):
-
+        #average over the whole day
         if self.today.day != time.day:
             
             daypath=self.path+'days/'+'{}.{}.{}.json'.format(self.today.year,self.today.month,self.today.day)
