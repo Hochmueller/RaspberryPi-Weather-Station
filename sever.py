@@ -237,9 +237,9 @@ def getweather():
             diff = datetime.datetime.now() - t0
 
         t0 = datetime.datetime.now()	
-        tempT = round(tempT/cnt,1)
-        tempP = round(tempP/cnt,2)
-        temprh = round(temprh/cnt,2)
+        tempT = tempT/cnt
+        tempP = tempP/cnt
+        temprh = temprh/cnt
 
         stw.collectDay(t0, tempT, tempP,temprh)	
         stw.collectWeek(t0, tempT, tempP,temprh)
@@ -264,9 +264,9 @@ def getremote():
             data = s.rx(120*1000)
             if data:
                 logging.debug("received remote package")
-                tempT = round(float(np.fromstring(bytes(data[:4]),np.float32)[0]),1)
-                tempP = round(float(np.fromstring(bytes(data[4:8]),np.float32)[0]),2)
-                temprh = round(float(np.fromstring(bytes(data[10:12]),np.uint16)[0]),2)
+                tempT = float(np.fromstring(bytes(data[:4]),np.float32)[0])
+                tempP = float(np.fromstring(bytes(data[4:8]),np.float32)[0])
+                temprh = float(np.fromstring(bytes(data[10:12]),np.uint16)[0])
                 temprh = temprh/65536*100
 
                 t0 = datetime.datetime.now()
