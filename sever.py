@@ -193,15 +193,33 @@ def check_selected():
     if geo=='local': path=PATH+'data/local/'
     else: path=PATH+'data/remote/' 
 
-    if duration=='day': path = path+'days/{}.{}.{}.json'.format(date.year,date.month,date.day)
-    elif duration=='week': path = path+'weeks/{}.{}.json'.format(date.year,date.isocalendar()[1])
-    elif duration=='month': path = path+'months/{}.{}.json'.format(date.year,date.month)
+    pathBevor=path
+
+    if duration=='day': 
+        path = path+'days/{}.{}.{}.json'.format(date.year,date.month,date.day)
+        dateBevor = date - datetime.timedelta(days=1)
+        pathBevor = pathBevor+'days/{}.{}.{}.json'.format(dateBevor.year,dateBevor.month,dateBevor.day)
+    elif duration=='week': 
+        path = path+'weeks/{}.{}.json'.format(date.year,date.isocalendar()[1])
+        dateBevor = date - datetime.timedelta(days=7)
+        pathBevor = pathBevor+'weeks/{}.{}.json'.format(dateBevor.year,dateBevor.isocalendar()[1])
+    elif duration=='month':
+        path = path+'months/{}.{}.json'.format(date.year,date.month)
+        dateBevor = date - datetime.timedelta(days=date.day)
+        pathBevor = pathBevor+'months/{}.{}.json'.format(pathBevor.year,pathBevor.month)
     elif duration=='year': path = path+'years/{}.json'.format(date.year)   
     
     if os.path.isfile(path):    
         with open(path,'r') as f:
             data=eval(json.load(f)) 
     else: data=[[],[],[],[]]
+
+    if duration !='year' and fc>0:
+        if os.path.isfile(pathBevor):
+            with open(pathBevor,'r') as f:
+                dataBevor=eval(json.load(f))
+        else: dataBevor=[[],[],[]]
+    #here the filtering must be done. the filter initial condition must get filled with the dataBevor last indexes.
     #filter data here!
     if(fc>0 and duration!='year'):
         if duration=="day":
