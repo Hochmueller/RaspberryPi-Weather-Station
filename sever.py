@@ -21,7 +21,7 @@ import logging
 import HDC1080
 import storeWeather
 from IPython.core.debugger import Tracer;
-
+import scipy.signal
 
 PATH='/root/webserver2/'
 
@@ -56,6 +56,14 @@ class User(UserMixin):
 users = [User(id) for id in range(1, 21)]
 
 
+sample_rate = 0.0166
+nyq_rate = sample_rate / 2.0
+width = 0.08
+ripple_db = -20.0
+N, beta = scipy.signal.kaiserord(ripple_db, width)
+cutoff_hz = 1/(60*60)
+taps = scipy.signal.firwin(N, cutoff_hz/nyq_rate, window=('kaiser', beta))
+
 # some protected url
 @app.route('/')
 @login_required
@@ -71,6 +79,9 @@ def home():
     else:
         data=[[],[],[],[]]
 
+    data[1]=scipy.signal.lfilter(taps, 1.0, data[1],zi=scipy.signal.lfilter_zi(taps,1.0)*data[1][0])[0]
+    data[2]=scipy.signal.lfilter(taps, 1.0, data[2],zi=scipy.signal.lfilter_zi(taps,1.0)*data[2][0])[0]
+    data[3]=scipy.signal.lfilter(taps, 1.0, data[3],zi=scipy.signal.lfilter_zi(taps,1.0)*data[3][0])[0]
     graphs = [
         dict(
             data=[
@@ -179,9 +190,9 @@ def add_header(response):
 
 @app.route('/getNewData', methods=['GET','POST'])
 def check_selected():
-
+    global taps
     global PATH
-
+    #Tracer()()
     post = request.args.get('post', 0)
     post=post.split(' ')
     duration=post[0]
@@ -195,18 +206,19 @@ def check_selected():
 
     pathBevor=path
 
+	#denkfehler, ich benötige dataafter
     if duration=='day': 
         path = path+'days/{}.{}.{}.json'.format(date.year,date.month,date.day)
         dateBevor = date - datetime.timedelta(days=1)
-        pathBevor = pathBevor+'days/{}.{}.{}.json'.format(dateBevor.year,dateBevor.month,dateBevor.day)
+        #pathBevor = pathBevor+'days/{}.{}.{}.json'.format(dateBevor.year,dateBevor.month,dateBevor.day)
     elif duration=='week': 
         path = path+'weeks/{}.{}.json'.format(date.year,date.isocalendar()[1])
         dateBevor = date - datetime.timedelta(days=7)
-        pathBevor = pathBevor+'weeks/{}.{}.json'.format(dateBevor.year,dateBevor.isocalendar()[1])
+        #pathBevor = pathBevor+'weeks/{}.{}.json'.format(dateBevor.year,dateBevor.isocalendar()[1])
     elif duration=='month':
         path = path+'months/{}.{}.json'.format(date.year,date.month)
         dateBevor = date - datetime.timedelta(days=date.day)
-        pathBevor = pathBevor+'months/{}.{}.json'.format(pathBevor.year,pathBevor.month)
+        #pathBevor = pathBevor+'months/{}.{}.json'.format(pathBevor.year,pathBevor.month)
     elif duration=='year': path = path+'years/{}.json'.format(date.year)   
     
     if os.path.isfile(path):    
@@ -214,20 +226,19 @@ def check_selected():
             data=eval(json.load(f)) 
     else: data=[[],[],[],[]]
 
-    if duration !='year' and fc>0:
-        if os.path.isfile(pathBevor):
-            with open(pathBevor,'r') as f:
-                dataBevor=eval(json.load(f))
-        else: dataBevor=[[],[],[]]
+    #if duration !='year' and fc>0:
+        #if os.path.isfile(pathBevor):
+            #with open(pathBevor,'r') as f:
+                #dataBevor=eval(json.load(f))
+        #else: dataBevor=[[],[],[]]
     #here the filtering must be done. the filter initial condition must get filled with the dataBevor last indexes.
     #filter data here!
     if(fc>0 and duration!='year'):
-        if duration=="day":
-            None
-        elif duration=="week":
-            None
-        elif duration=="month":
-            None
+        data[1]=list(scipy.signal.lfilter(taps, 1.0, data[1],zi=scipy.signal.lfilter_zi(taps,1.0)*data[1][0])[0])
+        data[2]=list(scipy.signal.lfilter(taps, 1.0, data[2],zi=scipy.signal.lfilter_zi(taps,1.0)*data[2][0])[0])
+        data[3]=list(scipy.signal.lfilter(taps, 1.0, data[3],zi=scipy.signal.lfilter_zi(taps,1.0)*data[3][0])[0])
+        
+       
 
     time=(json.dumps(data[0], cls=plotly.utils.PlotlyJSONEncoder)) 
     

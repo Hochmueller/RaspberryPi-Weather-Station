@@ -25,7 +25,7 @@
     </form>
 	<p></p>
 	Enable Filter <input type="checkbox" name="EnFilter" id="EnFilter" checked="checked" onclick="updatePlot()">
-    Filter cutoff frequency[in <span id="unit"> minutes</span>] <input type="number" name="fc" id="fc" >
+    
 
     
     <link rel="stylesheet" href="static/style.css" type="text/css"> 
@@ -86,21 +86,17 @@
         }
     });
 
-
+	
     function updatePlot() {
       var duration;
       if(document.getElementById("day").checked){
         duration="day"
-		document.getElementById("unit").innerHTML = "minutes"
       } else if(document.getElementById("month").checked){
         duration="month"
-		document.getElementById("unit").innerHTML = "hours"
       } else if(document.getElementById("year").checked){
         duration="year"
-		document.getElementById("unit").innerHTML = "--"
       } else if(document.getElementById("week").checked){
         duration="week"
-		document.getElementById("unit").innerHTML = "minutes"
       }
       var geo;
       if(document.getElementById("local").checked){
@@ -111,34 +107,35 @@
 
 	  var filter
 	  if(document.getElementById("EnFilter").checked){
-		filter=document.getElementById("fc").value;
+		filter="1"
 	  }else{
 		filter="0";
 	  }
-	  if(filter=="" || filter==null){
-		filter="0"
-	  }
-      var array = duration+" "+geo+" "+$("#datepicker-1").datepicker({dateFormat: 'dd.mm.yy'}).val()+" "+filter;
+
+	  var array = duration+" "+geo+" "+$("#datepicker-1").datepicker({dateFormat: 'dd.mm.yy'}).val()+" "+filter;
+
       $.getJSON( '/getNewData', {
         post: array
-        }, function(data) {
-            var time = data.time;
-            var Temperature = [{x: data.time, y: data.temperature, type: 'scatter'}]
-            var Presure = [{x: data.time, y: data.presure, type: 'scatter'}]
-            var hr = [{x: data.time, y: data.rh, type: 'scatter'}]
-            
-            Plotly.newPlot( ids[0], // the ID of the div, created above
-                            Temperature,
-                            {});
-            Plotly.newPlot( ids[1], // the ID of the div, created above
-                            Presure,
-                            {});
-            Plotly.newPlot( ids[2],
-                            hr,
-                            {});
-            }
+		    }, function(data) {
+		        var time = data.time;
+		        var Temperature = [{x: data.time, y: data.temperature, type: 'scatter'}]
+		        var Presure = [{x: data.time, y: data.presure, type: 'scatter'}]
+		        var hr = [{x: data.time, y: data.rh, type: 'scatter'}]
+		        
+		        Plotly.newPlot( ids[0], // the ID of the div, created above
+		                        Temperature,
+		                        {});
+		        Plotly.newPlot( ids[1], // the ID of the div, created above
+		                        Presure,
+		                        {});
+		        Plotly.newPlot( ids[2],
+		                        hr,
+		                        {});
+		        }
         );
-    }
+
+    
+	}
 
 
 
