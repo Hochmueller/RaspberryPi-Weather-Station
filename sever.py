@@ -16,6 +16,7 @@ from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
 from nocache import nocache
 import os.path
+import os
 import rfm69
 import logging
 import HDC1080
@@ -23,7 +24,7 @@ import storeWeather
 from IPython.core.debugger import Tracer;
 import scipy.signal
 
-PATH='/root/webserver2/'
+PATH=os.getcwd()+'/'
 
 
 app = Flask(__name__)
@@ -191,6 +192,7 @@ def add_header(response):
 @app.route('/getNewData', methods=['GET','POST'])
 def check_selected():
     global taps
+    global N
     global PATH
     #Tracer()()
     post = request.args.get('post', 0)
@@ -204,21 +206,21 @@ def check_selected():
     if geo=='local': path=PATH+'data/local/'
     else: path=PATH+'data/remote/' 
 
-    pathBevor=path
+    pathAfter=path
 
 	#denkfehler, ich benötige dataafter
     if duration=='day': 
         path = path+'days/{}.{}.{}.json'.format(date.year,date.month,date.day)
-        dateBevor = date - datetime.timedelta(days=1)
-        #pathBevor = pathBevor+'days/{}.{}.{}.json'.format(dateBevor.year,dateBevor.month,dateBevor.day)
+        dateAfter = date + datetime.timedelta(days=1)
+        pathAfter = pathAfter+'days/{}.{}.{}.json'.format(dateAfter.year,dateAfter.month,dateAfter.day)
     elif duration=='week': 
         path = path+'weeks/{}.{}.json'.format(date.year,date.isocalendar()[1])
-        dateBevor = date - datetime.timedelta(days=7)
-        #pathBevor = pathBevor+'weeks/{}.{}.json'.format(dateBevor.year,dateBevor.isocalendar()[1])
+        dateAfter = date + datetime.timedelta(days=7)
+        pathAfter = pathAfter+'weeks/{}.{}.json'.format(dateAfter.year,dateAfter.isocalendar()[1])
     elif duration=='month':
         path = path+'months/{}.{}.json'.format(date.year,date.month)
-        dateBevor = date - datetime.timedelta(days=date.day)
-        #pathBevor = pathBevor+'months/{}.{}.json'.format(pathBevor.year,pathBevor.month)
+        dateAfter = date + datetime.timedelta(days=date.day)
+        pathAfter = pathAfter+'months/{}.{}.json'.format(pathAfter.year,pathAfter.month)
     elif duration=='year': path = path+'years/{}.json'.format(date.year)   
     
     if os.path.isfile(path):    
@@ -226,12 +228,25 @@ def check_selected():
             data=eval(json.load(f)) 
     else: data=[[],[],[],[]]
 
-    #if duration !='year' and fc>0:
-        #if os.path.isfile(pathBevor):
-            #with open(pathBevor,'r') as f:
-                #dataBevor=eval(json.load(f))
-        #else: dataBevor=[[],[],[]]
-    #here the filtering must be done. the filter initial condition must get filled with the dataBevor last indexes.
+    if duration !='year' and fc>0:
+        if os.path.isfile(pathAfter):
+            with open(pathAfter,'r') as f:
+                dataAfter=eval(json.load(f))
+            #next day long enought for appending
+            if(len(dataAfter[0])>(N/2)):
+                data[1]=data[1][int(N/2):]+dataAfter[1][:int(N/2)]
+                data[2]=data[2][int(N/2):]+dataAfter[2][:int(N/2)]
+                data[3]=data[3][int(N/2):]+dataAfter[3][:int(N/2)]
+        else:
+            #day long enougth for shifting
+            if(len(data[0])>(N/2)):
+                data[0]=data[0][:-int(N/2)]
+                data[1]=data[1][int(N/2):]
+                data[2]=data[2][int(N/2):]
+                data[3]=data[3][int(N/2):]
+
+        
+    #here the filtering must be done. the filter initial condition must get filled with the dataAfter last indexes.
     #filter data here!
     if(fc>0 and duration!='year'):
         data[1]=list(scipy.signal.lfilter(taps, 1.0, data[1],zi=scipy.signal.lfilter_zi(taps,1.0)*data[1][0])[0])
