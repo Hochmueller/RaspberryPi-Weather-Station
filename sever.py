@@ -193,7 +193,9 @@ def add_header(response):
 
 
 
-
+@app.route('/getCurrent',methodes=['GET','POST'])
+def getCurrent():
+    return jsonify(time=eval(time),presure=data[2],temperature=data[1],rh=data[3])
 
 @app.route('/getNewData', methods=['GET','POST'])
 def check_selected():
@@ -269,13 +271,16 @@ def check_selected():
 
 ##########################################################################
 
-
+hp = HP03S.hp03s()
+hdc=HDC1080.hdc1080()
 
 def getweather():
     global PATH
+    global hp
+    global hdc
     logging.debug("start get weather")
-    hp = HP03S.hp03s()
-    hdc=HDC1080.hdc1080()
+    #hp = HP03S.hp03s()
+    #hdc=HDC1080.hdc1080()
     #cam = picamera.PiCamera()
     #cam.resolution = (1280,720)
     stw = storeWeather.storeWeather(PATH+'data/local/')
@@ -312,7 +317,10 @@ def getweather():
         #cam.capture(PATH+'/static/pic.JPG')
         #time.sleep(60)
 
+remotedata=[0,0,0]
+
 def getremote():
+    global remotedata
     logging.debug("Start getremote")
     s = rfm69.Rfm69()
     stw = storeWeather.storeWeather(PATH+'data/remote/')
@@ -336,7 +344,9 @@ def getremote():
                 stw.collectYear(t0)
 
                 stw.get_today()   
-
+                remotedata[0]=tempT
+                remotedata[1]=tempP
+                remotedata[2]=temprh
 
             else:
                 logging.debug("somethink went wrong, reinit")
