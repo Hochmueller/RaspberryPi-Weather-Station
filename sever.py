@@ -23,8 +23,9 @@ import HDC1080
 import storeWeather
 from IPython.core.debugger import Tracer;
 import scipy.signal
+from calendar import mdays
 
-PATH=os.getcwd()+'/'
+PATH=os.path.dirname(os.path.realpath(__file__))+'/'
 
 
 app = Flask(__name__)
@@ -218,9 +219,11 @@ def check_selected():
         dateAfter = date + datetime.timedelta(days=7)
         pathAfter = pathAfter+'weeks/{}.{}.json'.format(dateAfter.year,dateAfter.isocalendar()[1])
     elif duration=='month':
+        Tracer()()
         path = path+'months/{}.{}.json'.format(date.year,date.month)
-        dateAfter = date + datetime.timedelta(days=date.day)
-        pathAfter = pathAfter+'months/{}.{}.json'.format(pathAfter.year,pathAfter.month)
+        dateAfter = date + datetime.timedelta(mdays[date.month])
+        pathAfter = pathAfter+'months/{}.{}.json'.format(dateAfter.year,dateAfter.month)
+        print(pathAfter)
     elif duration=='year': path = path+'years/{}.json'.format(date.year)   
     
     if os.path.isfile(path):    
