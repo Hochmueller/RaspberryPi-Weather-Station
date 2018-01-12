@@ -81,6 +81,11 @@ def home():
     else:
         data=[[],[],[],[]]
 
+    data[0]=data[0][:-int(N/2)]
+    data[1]=data[1][int(N/2):]
+    data[2]=data[2][int(N/2):]
+    data[3]=data[3][int(N/2):]
+
     data[1]=scipy.signal.lfilter(taps, 1.0, data[1],zi=scipy.signal.lfilter_zi(taps,1.0)*data[1][0])[0]
     data[2]=scipy.signal.lfilter(taps, 1.0, data[2],zi=scipy.signal.lfilter_zi(taps,1.0)*data[2][0])[0]
     data[3]=scipy.signal.lfilter(taps, 1.0, data[3],zi=scipy.signal.lfilter_zi(taps,1.0)*data[3][0])[0]
@@ -219,7 +224,6 @@ def check_selected():
         dateAfter = date + datetime.timedelta(days=7)
         pathAfter = pathAfter+'weeks/{}.{}.json'.format(dateAfter.year,dateAfter.isocalendar()[1])
     elif duration=='month':
-        Tracer()()
         path = path+'months/{}.{}.json'.format(date.year,date.month)
         dateAfter = date + datetime.timedelta(mdays[date.month])
         pathAfter = pathAfter+'months/{}.{}.json'.format(dateAfter.year,dateAfter.month)
