@@ -72,7 +72,7 @@ taps = scipy.signal.firwin(N, cutoff_hz/nyq_rate, window=('kaiser', beta))
 @nocache
 def home():
     global PATH
-
+    global N
     t0=datetime.datetime.now()
     daypath=PATH+'data/local/days/'+'{}.{}.{}.json'.format(t0.year,t0.month,t0.day)
     if os.path.isfile(daypath):
@@ -81,14 +81,15 @@ def home():
     else:
         data=[[],[],[],[]]
 
-    data[0]=data[0][:-int(N/2)]
-    data[1]=data[1][int(N/2):]
-    data[2]=data[2][int(N/2):]
-    data[3]=data[3][int(N/2):]
-
-    data[1]=scipy.signal.lfilter(taps, 1.0, data[1],zi=scipy.signal.lfilter_zi(taps,1.0)*data[1][0])[0]
-    data[2]=scipy.signal.lfilter(taps, 1.0, data[2],zi=scipy.signal.lfilter_zi(taps,1.0)*data[2][0])[0]
-    data[3]=scipy.signal.lfilter(taps, 1.0, data[3],zi=scipy.signal.lfilter_zi(taps,1.0)*data[3][0])[0]
+    
+    if len(data[0])>(N/2):
+        data[0]=data[0][:-int(N/2)]
+        data[1]=data[1][int(N/2):]
+        data[2]=data[2][int(N/2):]
+        data[3]=data[3][int(N/2):]
+        data[1]=scipy.signal.lfilter(taps, 1.0, data[1],zi=scipy.signal.lfilter_zi(taps,1.0)*data[1][0])[0]
+        data[2]=scipy.signal.lfilter(taps, 1.0, data[2],zi=scipy.signal.lfilter_zi(taps,1.0)*data[2][0])[0]
+        data[3]=scipy.signal.lfilter(taps, 1.0, data[3],zi=scipy.signal.lfilter_zi(taps,1.0)*data[3][0])[0]
     graphs = [
         dict(
             data=[
@@ -193,9 +194,9 @@ def add_header(response):
 
 
 
-@app.route('/getCurrent',methodes=['GET','POST'])
-def getCurrent():
-    return jsonify(time=eval(time),presure=data[2],temperature=data[1],rh=data[3])
+#@app.route('/getCurrent', methods=['GET','POST'])
+#def getlive():
+#    return jsonify(time=eval(time),presure=data[2],temperature=data[1],rh=data[3])
 
 @app.route('/getNewData', methods=['GET','POST'])
 def check_selected():
@@ -257,7 +258,7 @@ def check_selected():
         
     #here the filtering must be done. the filter initial condition must get filled with the dataAfter last indexes.
     #filter data here!
-    if(fc>0 and duration!='year'):
+    if(fc>0 and duration!='year' and len(data[0])>(N/2)):
         data[1]=list(scipy.signal.lfilter(taps, 1.0, data[1],zi=scipy.signal.lfilter_zi(taps,1.0)*data[1][0])[0])
         data[2]=list(scipy.signal.lfilter(taps, 1.0, data[2],zi=scipy.signal.lfilter_zi(taps,1.0)*data[2][0])[0])
         data[3]=list(scipy.signal.lfilter(taps, 1.0, data[3],zi=scipy.signal.lfilter_zi(taps,1.0)*data[3][0])[0])
@@ -365,11 +366,11 @@ if __name__ == "__main__":
     logging.debug('start')
     _thread.start_new_thread(getweather, ())
     _thread.start_new_thread(getremote, ())
-    #app.run(host='0.0.0.0',port=5000)
-    app.config["CACHE_TYPE"] = "null"
-    http_server = HTTPServer(WSGIContainer(app))
-    http_server.listen(5000)
-    IOLoop.instance().start() 
+    app.run(host='0.0.0.0',port=5000)
+    #app.config["CACHE_TYPE"] = "null"
+    #http_server = HTTPServer(WSGIContainer(app))
+    #http_server.listen(5000)
+    #IOLoop.instance().start() 
     while(1):
         pass
     
