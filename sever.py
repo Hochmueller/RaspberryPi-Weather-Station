@@ -329,8 +329,10 @@ def getremote():
     
     while True:
         try:        
-            #Tracer()()
+            
             data = s.rx(120*1000)
+            #Tracer()()
+            print(data,len(data))
             if data:
                 logging.debug("received remote package")
                 tempT = float(np.fromstring(bytes(data[:4]),np.float32)[0])
@@ -348,12 +350,14 @@ def getremote():
                 remotedata[0]=tempT
                 remotedata[1]=tempP
                 remotedata[2]=temprh
+                print(remotedata)
 
             else:
                 logging.debug("somethink went wrong, reinit")
                 logging.debug("flags bevor are {}, mode ={}".format(s.getFlag(), s.getMode()))
                 #s.reset()
                 #s.initModule()
+                del(s)
                 s=rfm69.Rfm69()
                 time.sleep(0.1)
                 logging.debug("flags afer are {}, mode ={}".format(s.getFlag(), s.getMode()))
@@ -362,15 +366,15 @@ def getremote():
     
 
 if __name__ == "__main__":
-    logging.basicConfig(format='%(asctime)s:%(filename)s:%(funcName)s:%(message)s:',filename='logging.log',level=logging.DEBUG)
+    logging.basicConfig(format='%(asctime)s:%(filename)s:%(funcName)s:%(message)s:',filename=os.path.dirname(os.path.realpath(__file__))+'/logging.log',level=logging.DEBUG)
     logging.debug('start')
     _thread.start_new_thread(getweather, ())
     _thread.start_new_thread(getremote, ())
-    app.run(host='0.0.0.0',port=5000)
-    #app.config["CACHE_TYPE"] = "null"
-    #http_server = HTTPServer(WSGIContainer(app))
-    #http_server.listen(5000)
-    #IOLoop.instance().start() 
+    #app.run(host='0.0.0.0',port=5000)
+    app.config["CACHE_TYPE"] = "null"
+    http_server = HTTPServer(WSGIContainer(app))
+    http_server.listen(5000)
+    IOLoop.instance().start() 
     while(1):
         pass
     
