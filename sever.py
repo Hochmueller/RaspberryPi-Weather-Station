@@ -248,7 +248,7 @@ def getlive():
     POutMax=round(float(max(dataOutdoor[2])),2)
     POutMin=round(float(min(dataOutdoor[2])),2)
 
-    HrOutN=round(float(remotedata[1]),2)
+    HrOutN=round(float(remotedata[2]),2)
     HrOutMax=round(float(max(dataOutdoor[3])),2)
     HrOutMin=round(float(min(dataOutdoor[3])),2)
     
