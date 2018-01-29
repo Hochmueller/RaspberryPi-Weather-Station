@@ -194,9 +194,66 @@ def add_header(response):
 
 
 
-#@app.route('/getCurrent', methods=['GET','POST'])
-#def getlive():
-#    return jsonify(time=eval(time),presure=data[2],temperature=data[1],rh=data[3])
+@app.route('/getCurrent',methods=['GET','POST'])
+def getlive():
+    post = request.args.get('post', 0)
+    post=post.split(' ')
+    duration=post[0]
+    date=post[1].split('.')
+    date=datetime.datetime(int(date[2]), int(date[1]), int(date[0]))
+
+    pathIndoor=PATH+'data/local/'
+    pathOutdoor=PATH+'data/remote/'
+
+    if duration=='day': 
+        pathIndoor = pathIndoor+'days/{}.{}.{}.json'.format(date.year,date.month,date.day)
+        pathOutdoor = pathOutdoor+'days/{}.{}.{}.json'.format(date.year,date.month,date.day)
+    elif duration=='week': 
+        pathIndoor = pathIndoor+'weeks/{}.{}.json'.format(date.year,date.isocalendar()[1])
+        pathOutdoor = pathOutdoor+'weeks/{}.{}.json'.format(date.year,date.isocalendar()[1])
+    elif duration=='month':
+        pathIndoor = pathIndoor+'months/{}.{}.json'.format(date.year,date.month)
+        pathOutdoor = pathOutdoor+'months/{}.{}.json'.format(date.year,date.month)
+    elif duration=='year': 
+        pathIndoor = pathIndoor+'years/{}.json'.format(date.year)   
+        pathOutdoor = pathOutdoor+'years/{}.json'.format(date.year)
+    
+    if os.path.isfile(pathIndoor):    
+        with open(pathIndoor,'r') as f:
+            dataIndoor=eval(json.load(f)) 
+    else: dataIndoor=[[0],[0],[0],[0]]
+    
+    TInN=round(float(Indoordata[0]),2)
+    TInMax=round(float(max(dataIndoor[1])),2)
+    TInMin=round(float(min(dataIndoor[1])),2)
+
+    PInN=round(float(Indoordata[1]),2)
+    PInMax=round(float(max(dataIndoor[2])),2)
+    PInMin=round(float(min(dataIndoor[2])),2)
+
+    HrInN=round(float(Indoordata[2]),2)
+    HrInMax=round(float(max(dataIndoor[3])),2)
+    HrInMin=round(float(min(dataIndoor[3])),2)
+
+    if os.path.isfile(pathOutdoor):    
+        with open(pathOutdoor,'r') as f:
+            dataOutdoor=eval(json.load(f)) 
+    else: dataOutdoor=[[0],[0],[0],[0]]    
+    
+    TOutN=round(float(remotedata[0]),2)
+    TOutMax=round(float(max(dataOutdoor[1])),2)
+    TOutMin=round(float(min(dataOutdoor[1])),2)
+
+    POutN=round(float(remotedata[1]),2)
+    POutMax=round(float(max(dataOutdoor[2])),2)
+    POutMin=round(float(min(dataOutdoor[2])),2)
+
+    HrOutN=round(float(remotedata[1]),2)
+    HrOutMax=round(float(max(dataOutdoor[3])),2)
+    HrOutMin=round(float(min(dataOutdoor[3])),2)
+    
+    return jsonify(TInN=TInN,TInMax=TInMax,TInMin=TInMin,PInN=PInN,PInMax=PInMax,PInMin=PInMin,HrInN=HrInN,HrInMax=HrInMax,HrInMin=HrInMin,TOutN=TOutN,TOutMax=TOutMax,TOutMin=TOutMin,POutN=POutN,POutMax=POutMax,POutMin=POutMin,HrOutN=HrOutN,HrOutMax=HrOutMax,HrOutMin=HrOutMin)
+
 
 @app.route('/getNewData', methods=['GET','POST'])
 def check_selected():
@@ -230,7 +287,6 @@ def check_selected():
         path = path+'months/{}.{}.json'.format(date.year,date.month)
         dateAfter = date + datetime.timedelta(mdays[date.month])
         pathAfter = pathAfter+'months/{}.{}.json'.format(dateAfter.year,dateAfter.month)
-        print(pathAfter)
     elif duration=='year': path = path+'years/{}.json'.format(date.year)   
     
     if os.path.isfile(path):    
@@ -271,17 +327,17 @@ def check_selected():
     return jsonify(time=eval(time),presure=data[2],temperature=data[1],rh=data[3])
 
 ##########################################################################
+Indoordata=[0,0,0]
 
-hp = HP03S.hp03s()
-hdc=HDC1080.hdc1080()
+
 
 def getweather():
     global PATH
     global hp
     global hdc
     logging.debug("start get weather")
-    #hp = HP03S.hp03s()
-    #hdc=HDC1080.hdc1080()
+    hp = HP03S.hp03s()
+    hdc=HDC1080.hdc1080()
     #cam = picamera.PiCamera()
     #cam.resolution = (1280,720)
     stw = storeWeather.storeWeather(PATH+'data/local/')
@@ -306,6 +362,10 @@ def getweather():
         tempT = tempT/cnt
         tempP = tempP/cnt
         temprh = temprh/cnt
+
+        Indoordata[0]=tempT
+        Indoordata[1]=tempP
+        Indoordata[2]=temprh
 
         stw.collectDay(t0, tempT, tempP,temprh)	
         stw.collectWeek(t0, tempT, tempP,temprh)
@@ -332,7 +392,6 @@ def getremote():
             
             data = s.rx(120*1000)
             #Tracer()()
-            print(data,len(data))
             if data:
                 logging.debug("received remote package")
                 tempT = float(np.fromstring(bytes(data[:4]),np.float32)[0])
@@ -350,7 +409,7 @@ def getremote():
                 remotedata[0]=tempT
                 remotedata[1]=tempP
                 remotedata[2]=temprh
-                print(remotedata)
+
 
             else:
                 logging.debug("somethink went wrong, reinit")

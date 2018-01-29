@@ -6,11 +6,8 @@
   <body>
     <!-- HTML -->
     <h1>Weather</h1> 
-	<!--    
-	<img src="static/pic.JPG" width="1280" height="720" alt="webcam"></img>
-    <button onclick="myFunction()">The time is?</button>
-	-->
-    <p>Enter Date: <input type = "text" id = "datepicker-1"></p>
+	
+	<p>Enter Date: <input type = "text" id = "datepicker-1"></p>
     <form>
       Plot data for a<br>
       <input type="radio" name="plotTime" id="day" checked="checked" onclick="updatePlot()">day
@@ -24,6 +21,53 @@
       <input type="radio" name="datasource" id="remote" onclick="updatePlot()">Remote Sensor
     </form>
 	<p></p>
+
+    <table>
+	  <tr>
+	  </tr>
+      <tr>
+        <th></th>
+        <th> Indoor now </th>
+		<th> Indoor max </th>
+		<th> Indoor min </th>
+        <th> Outdoor now </th>
+		<th> Outdoor max </th>
+		<th> Outdoor min </th>
+      </tr>
+      <tr>
+        <th>Temperature</th>
+        <td id=tTinN>-- °C</td>
+		<td id=tTinMax>-- °C</td>
+		<td id=tTinMin>-- °C</td>
+        <td id=tToutN>-- °C</td>
+		<td id=tToutMax>-- °C</td>
+		<td id=tToutMin>-- °C</td>
+      </tr>
+      <tr>
+        <th>Air Pressure</td>
+        <td id=tPinN>---- hpa</td>
+		<td id=tPinMax>---- hpa</td>
+		<td id=tPinMin>---- hpa</td>
+        <td id=tPoutN>---- hpa</td>
+		<td id=tPoutMax>---- hpa</td>
+		<td id=tPoutMin>---- hpa</td>
+      </tr>
+      <tr>
+        <th>Relative Huminity</td>
+        <td id=tHrinN>-- %</td>
+		<td id=tHrinMax>-- %</td>
+		<td id=tHrinMin>-- %</td>
+        <td id=tHroutN>-- %</td>
+		<td id=tHroutMax>-- %</td>
+		<td id=tHroutMin>-- %</td>
+      </tr>
+    </table>
+
+	<!--    
+	<img src="static/pic.JPG" width="1280" height="720" alt="webcam"></img>
+    <button onclick="myFunction()">The time is?</button>
+	-->
+    
 	Enable Filter <input type="checkbox" name="EnFilter" id="EnFilter" checked="checked" onclick="updatePlot()">
     
 
@@ -86,9 +130,12 @@
         }
     });
 
+
+
 	
     function updatePlot() {
-      var duration;
+      getTable();
+	  var duration;
       if(document.getElementById("day").checked){
         duration="day"
       } else if(document.getElementById("month").checked){
@@ -137,10 +184,57 @@
     
 	}
 
+	var timer = setInterval(getTable, 500000);
+
+	function getTable(){
+	  var duration;
+      if(document.getElementById("day").checked){
+        duration="day"
+      } else if(document.getElementById("month").checked){
+        duration="month"
+      } else if(document.getElementById("year").checked){
+        duration="year"
+      } else if(document.getElementById("week").checked){
+        duration="week"
+      }
+
+	  var array = duration + " " +$("#datepicker-1").datepicker({dateFormat: 'dd.mm.yy'}).val();
 
 
 
+      $.getJSON( '/getCurrent', {
+        post: array
+		    }, function(data) {
+					document.getElementById("tTinN").innerHTML = data.TInN+" °C";
+					document.getElementById("tTinMax").innerHTML = data.TInMax+" °C";
+					document.getElementById("tTinMin").innerHTML = data.TInMin+" °C";
 
+					document.getElementById("tToutN").innerHTML = data.TOutN+" °C";
+					document.getElementById("tToutMax").innerHTML = data.TOutMax+" °C";
+					document.getElementById("tToutMin").innerHTML = data.TOutMin+" °C";
+
+					document.getElementById("tPinN").innerHTML = data.PInN+" hpa";
+					document.getElementById("tPinMax").innerHTML = data.PInMax+" hpa";
+					document.getElementById("tPinMin").innerHTML = data.PInMin+" hpa";
+		
+					document.getElementById("tPoutN").innerHTML = data.POutN+" hpa";
+					document.getElementById("tPoutMax").innerHTML = data.POutMax+" hpa";
+					document.getElementById("tPoutMin").innerHTML = data.POutMin+" hpa";
+
+					document.getElementById("tHrinN").innerHTML = data.HrInN+" %";
+					document.getElementById("tHrinMax").innerHTML = data.HrInMax+" %";
+					document.getElementById("tHrinMin").innerHTML = data.HrInMin+" %";
+
+					document.getElementById("tHroutN").innerHTML = data.HrOutN+" %";
+					document.getElementById("tHroutMax").innerHTML = data.HrOutMax+" %";
+					document.getElementById("tHroutMin").innerHTML = data.HrOutMin+" %";
+		        }
+        );
+
+	}	
+
+
+	getTable();
 
 
 
