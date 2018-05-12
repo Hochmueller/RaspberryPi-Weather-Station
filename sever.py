@@ -74,7 +74,7 @@ def home():
     global PATH
     global N
     t0=datetime.datetime.now()
-    daypath=PATH+'data/local/days/'+'{}.{}.{}.json'.format(t0.year,t0.month,t0.day)
+    daypath=PATH+'data/remote/days/'+'{}.{}.{}.json'.format(t0.year,t0.month,t0.day)
     if os.path.isfile(daypath):
         with open(daypath,'r') as f:
             data = eval(json.load(f))
