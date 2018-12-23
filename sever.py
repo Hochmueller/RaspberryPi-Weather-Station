@@ -274,7 +274,6 @@ def check_selected():
 
     pathAfter=path
 
-	#denkfehler, ich benötige dataafter
     if duration=='day': 
         path = path+'days/{}.{}.{}.json'.format(date.year,date.month,date.day)
         dateAfter = date + datetime.timedelta(days=1)
@@ -425,7 +424,7 @@ def getremote():
     
 
 if __name__ == "__main__":
-    logging.basicConfig(format='%(asctime)s:%(filename)s:%(funcName)s:%(message)s:',filename=os.path.dirname(os.path.realpath(__file__))+'/logging.log',level=logging.DEBUG)
+    logging.basicConfig(format='%(asctime)s:%(filename)s:%(funcName)s:%(message)s:',filename=os.path.dirname(os.path.realpath(__file__))+'/logging.log',level=logging.ERROR)
     logging.debug('start')
     _thread.start_new_thread(getweather, ())
     _thread.start_new_thread(getremote, ())
